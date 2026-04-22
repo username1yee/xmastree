@@ -213,7 +213,7 @@
                 if (gltfUiiai.animations.length > 0) {
                     mixer = new THREE.AnimationMixer(uiiaiModel);
                     const action = mixer.clipAction(gltfUiiai.animations[0]);
-                    action.timeScale = 1.2; // 120% 速度
+                    action.timeScale = 2.0; // 120% 速度
                     action.play();
                 }
 
