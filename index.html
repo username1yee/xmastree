@@ -3,18 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium 3D Dashboard - Music Egg</title>
-    <meta name="description" content="點擊查看精緻的 3D 模型互動預覽，支援高級渲染效果與隱藏彩蛋。">
+    <title>2026聖誕樹設計大餅</title>
+    <meta name="description" content="摩西分海/應許之地">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="你的網頁網址"> <meta property="og:title" content="3D 模型高級預覽系統">
-    <meta property="og:description" content="探索 3D 互動技術，體驗極致視覺與音效。">
+    <meta property="og:url" content="你的網頁網址"> <meta property="og:title" content="2026聖誕樹設計大餅">
+    <meta property="og:description" content="摩西分海/應許之地">
     <meta property="og:image" content="banner.png"> <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="3D 模型高級預覽系統">
-    <meta name="twitter:description" content="探索 3D 互動技術，體驗極致視覺與音效。">
-    <meta name="twitter:image" content="banner.png">
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
@@ -109,7 +104,7 @@
     <button class="toggle-btn" id="toggle-btn" style="display:none;">DASHBOARD</button>
 
     <div id="dashboard" class="glass-panel">
-        <h1>System Monitor</h1>
+        <h1>2026聖誕樹設計大餅</h1>
         <div class="status">模型預覽中 - 穩定</div>
         <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 20px; margin-bottom: 5px;">
             環境光補償: 已開啟<br>
@@ -117,7 +112,7 @@
         </p>
         
         <label class="option-item">
-            <input type="checkbox" id="uiiai-toggle"> 啟用核心組件 (uiiai)
+            <input type="checkbox" id="uiiai-toggle"> UIIAI
         </label>
     </div>
 
@@ -222,7 +217,7 @@
                 if (gltfUiiai.animations.length > 0) {
                     mixer = new THREE.AnimationMixer(uiiaiModel);
                     const action = mixer.clipAction(gltfUiiai.animations[0]);
-                    action.timeScale = 1.2; 
+                    action.timeScale = 1.8; 
                     action.play();
                 }
 
