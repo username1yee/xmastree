@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium 3D Dashboard - Easter Egg</title>
+    <title>Premium 3D Dashboard - Music Egg</title>
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
@@ -72,7 +72,6 @@
         .status { font-size: 0.9rem; display: flex; align-items: center; }
         .status::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; margin-right: 12px; box-shadow: 0 0 10px var(--accent-color); }
 
-        /* 新增的選項樣式 */
         .option-item {
             margin-top: 15px;
             display: flex;
@@ -93,6 +92,8 @@
     <div id="loader-overlay" class="glass-panel" style="padding: 20px; border-radius: 12px;">
         <div class="status" id="load-status">正在載入 3D 資源...</div>
     </div>
+
+    <audio id="uiiai-audio" src="./uiiai.mp3" loop></audio>
 
     <button class="toggle-btn" id="toggle-btn" style="display:none;">DASHBOARD</button>
 
@@ -132,6 +133,7 @@
         const dashboard = document.getElementById('dashboard');
         const toggleBtn = document.getElementById('toggle-btn');
         const uiiaiToggle = document.getElementById('uiiai-toggle');
+        const uiiaiAudio = document.getElementById('uiiai-audio');
 
         toggleBtn.addEventListener('click', () => {
             dashboard.classList.toggle('active');
@@ -172,7 +174,6 @@
             const loader = new GLTFLoader();
             const textureLoader = new THREE.TextureLoader();
 
-            // 定義一個處理貼圖的共用函式
             const applyTextures = (model) => {
                 model.traverse((child) => {
                     if (child.isMesh && child.material) {
@@ -190,7 +191,6 @@
             };
 
             try {
-                // 載入主模型
                 const gltfMain = await loader.loadAsync('./model.glb');
                 mainModel = gltfMain.scene;
                 applyTextures(mainModel);
@@ -200,26 +200,31 @@
                 mainModel.position.sub(center);
                 scene.add(mainModel);
 
-                // 載入 uiiai 模型 (彩蛋)
                 const gltfUiiai = await loader.loadAsync('./uiiai.glb');
                 uiiaiModel = gltfUiiai.scene;
                 applyTextures(uiiaiModel);
                 
-                uiiaiModel.visible = false; // 預設隱藏
-                uiiaiModel.position.sub(center); // 與主模型位置同步
+                uiiaiModel.visible = false; 
+                uiiaiModel.position.sub(center); 
                 scene.add(uiiaiModel);
 
-                // 設定 uiiai 動畫
                 if (gltfUiiai.animations.length > 0) {
                     mixer = new THREE.AnimationMixer(uiiaiModel);
                     const action = mixer.clipAction(gltfUiiai.animations[0]);
-                    action.timeScale = 2.0; // 120% 速度
+                    action.timeScale = 1.2; 
                     action.play();
                 }
 
-                // 介面切換
+                // 修改後的勾選連動邏輯
                 uiiaiToggle.addEventListener('change', (e) => {
-                    uiiaiModel.visible = e.target.checked;
+                    const isChecked = e.target.checked;
+                    uiiaiModel.visible = isChecked;
+                    if (isChecked) {
+                        uiiaiAudio.play().catch(err => console.log("等待用戶交互後播放音樂"));
+                    } else {
+                        uiiaiAudio.pause();
+                        uiiaiAudio.currentTime = 0; // 重置音樂
+                    }
                 });
 
                 loaderOverlay.style.opacity = '0';
@@ -227,7 +232,7 @@
                     loaderOverlay.style.display = 'none';
                     dashboard.style.visibility = 'visible';
                     toggleBtn.style.display = 'block';
-                    dashboard.classList.add('active'); 
+                    // 這裡移除了 dashboard.classList.add('active')，讓它預設隱藏
                 }, 500);
 
             } catch (error) {
@@ -245,7 +250,7 @@
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
-            if (mixer) mixer.update(delta); // 更新動畫
+            if (mixer) mixer.update(delta);
             controls.update();
             renderer.render(scene, camera);
         }
