@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
-            --panel-bg: rgba(255, 255, 255, 0.1);
+            --panel-bg: rgba(255, 255, 255, 0.15);
             --accent-color: #00d2ff;
             --transition-speed: 0.5s;
         }
@@ -38,16 +38,16 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1), opacity var(--transition-speed);
             position: fixed;
             z-index: 50;
         }
 
         #dashboard {
-            visibility: hidden; /* 初始隱藏，載入完畢才顯示 */
+            visibility: hidden;
         }
 
-        /* 電腦端佈局 (右側收合) */
+        /* 電腦端佈局 (右側收合 + 垂直按鈕) */
         @media (min-width: 769px) {
             #dashboard {
                 top: 0;
@@ -63,51 +63,65 @@
             }
             .toggle-btn {
                 position: absolute;
-                left: -50px;
+                left: -40px; /* 調整按鈕位置 */
                 top: 50%;
-                transform: translateY(-50%);
+                transform: translateY(-50%) rotate(-90deg); /* 旋轉 90 度變直的 */
+                transform-origin: center;
+                padding: 8px 20px;
             }
         }
 
-        /* 手機端佈局 (底部收合) */
+        /* 手機端佈局 (螢幕正中央) */
         @media (max-width: 768px) {
             #dashboard {
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 30vh;
-                border-radius: 20px 20px 0 0;
-                padding: 24px;
-                transform: translateY(100%);
+                top: 50%;
+                left: 50%;
+                width: 80%;
+                max-width: 300px;
+                height: auto;
+                min-height: 200px;
+                border-radius: 20px;
+                padding: 30px;
+                transform: translate(-50%, -50%) scale(0.8); /* 居中並縮小 */
+                opacity: 0;
+                pointer-events: none;
             }
             #dashboard.active {
-                transform: translateY(0);
+                transform: translate(-50%, -50%) scale(1); /* 居中回彈 */
+                opacity: 1;
+                pointer-events: auto;
             }
             .toggle-btn {
-                position: absolute;
-                top: -50px;
+                position: fixed;
+                bottom: 30px;
                 left: 50%;
                 transform: translateX(-50%);
+                z-index: 60;
             }
         }
 
-        /* 收合按鈕樣式 */
+        /* 按鈕樣式 */
         .toggle-btn {
             background: var(--panel-bg);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 10px 15px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
-            letter-spacing: 1px;
+            font-size: 11px;
+            letter-spacing: 2px;
             white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: background 0.3s;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
 
         h1 {
             margin: 0 0 16px 0;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 300;
             letter-spacing: 2px;
             text-transform: uppercase;
@@ -144,8 +158,9 @@
         <div class="status" id="load-status">正在載入 3D 資源...</div>
     </div>
 
+    <button class="toggle-btn" id="toggle-btn" style="display:none;">DASHBOARD</button>
+
     <div id="dashboard" class="glass-panel">
-        <button class="toggle-btn" id="toggle-btn">DASHBOARD</button>
         <h1>System Monitor</h1>
         <div class="status">模型預覽中 - 穩定</div>
         <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 20px;">
@@ -175,7 +190,6 @@
         const dashboard = document.getElementById('dashboard');
         const toggleBtn = document.getElementById('toggle-btn');
 
-        // 控制收合邏輯
         toggleBtn.addEventListener('click', () => {
             dashboard.classList.toggle('active');
         });
@@ -238,12 +252,12 @@
                 model.position.sub(center);
                 scene.add(model);
 
-                // --- 狀態切換邏輯 ---
-                loaderOverlay.style.opacity = '0'; // 隱藏載入提示
+                loaderOverlay.style.opacity = '0';
                 setTimeout(() => {
                     loaderOverlay.style.display = 'none';
-                    dashboard.style.visibility = 'visible'; // 顯示 Dashboard
-                    dashboard.classList.add('active'); // 預設展開
+                    dashboard.style.visibility = 'visible';
+                    toggleBtn.style.display = 'block'; // 顯示按鈕
+                    dashboard.classList.add('active'); 
                 }, 500);
 
             } catch (error) {
