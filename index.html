@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium 3D Dashboard</title>
+    <title>Premium 3D Viewer - Dashboard</title>
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
             --panel-bg: rgba(255, 255, 255, 0.1);
             --accent-color: #00d2ff;
-            --transition-speed: 0.5s;
+            --transition-speed: 0.4s;
         }
 
         body {
@@ -20,14 +20,14 @@
             color: white;
         }
 
-        /* 初始載入方格 (置中) */
-        #loading-overlay {
-            position: fixed;
+        /* 初始載入提示 */
+        #loader {
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            text-align: center;
             z-index: 100;
-            transition: opacity 0.5s ease;
         }
 
         .glass-panel {
@@ -35,72 +35,103 @@
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 24px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        /* Dashboard 基礎設定 */
+        /* Dashboard 基本設定 */
         #dashboard {
             position: fixed;
             z-index: 50;
-            transition: transform var(--transition-speed) cubic-bezier(0.19, 1, 0.22, 1);
+            transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
             display: none; /* 初始隱藏 */
         }
 
-        /* 電腦端：右側面板 */
+        /* 切換按鈕 */
+        #toggle-btn {
+            position: absolute;
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            z-index: 51;
+        }
+
+        /* 電腦版樣式：右側側邊欄 */
         @media (min-width: 769px) {
             #dashboard {
-                top: 20px;
-                right: 20px;
-                bottom: 20px;
+                top: 0;
+                right: 0;
                 width: 300px;
-                transform: translateX(120%); /* 預設收縮在右側之外 */
-            }
-            #dashboard.active {
+                height: 100vh;
+                border-radius: 16px 0 0 16px;
                 transform: translateX(0);
-                display: block;
+            }
+            #dashboard.closed {
+                transform: translateX(100%);
+            }
+            #toggle-btn {
+                top: 20px;
+                right: 320px;
+                transition: right var(--transition-speed);
+            }
+            #dashboard.closed + #toggle-btn {
+                right: 20px;
             }
         }
 
-        /* 手機端：底部面板 */
+        /* 手機版樣式：底部向上升 */
         @media (max-width: 768px) {
             #dashboard {
-                left: 10px;
-                right: 10px;
-                bottom: 10px;
-                height: 200px;
-                transform: translateY(120%); /* 預設收縮在底部之外 */
-            }
-            #dashboard.active {
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 40vh;
+                border-radius: 20px 20px 0 0;
                 transform: translateY(0);
-                display: block;
+            }
+            #dashboard.closed {
+                transform: translateY(100%);
+            }
+            #toggle-btn {
+                bottom: calc(40vh + 20px);
+                left: 50%;
+                transform: translateX(-50%);
+                transition: bottom var(--transition-speed);
+            }
+            #dashboard.closed + #toggle-btn {
+                bottom: 20px;
             }
         }
 
         .dashboard-content {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            padding: 30px;
+        }
+
+        h1 {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .status {
             font-size: 0.9rem;
             display: flex;
             align-items: center;
-            letter-spacing: 1px;
         }
 
         .status::before {
             content: '';
             display: inline-block;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background: var(--accent-color);
             border-radius: 50%;
-            margin-right: 12px;
+            margin-right: 10px;
             box-shadow: 0 0 10px var(--accent-color);
         }
 
@@ -108,35 +139,21 @@
             width: 100vw;
             height: 100vh;
         }
-
-        /* 收縮按鈕 */
-        #toggle-btn {
-            position: absolute;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 10px;
-            top: 10px;
-            right: 10px;
-        }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay" class="glass-panel">
-        <h1 style="margin:0; font-size: 1.2rem; font-weight: 300;">Model Preview</h1>
-        <p id="loading-text" style="font-size: 0.8rem; opacity: 0.6;">資源加載中...</p>
+    <div id="loader">
+        <div class="status">正在載入模型資源...</div>
     </div>
 
     <div id="dashboard" class="glass-panel">
-        <button id="toggle-btn">HIDE</button>
         <div class="dashboard-content">
+            <h1>Dashboard</h1>
             <div class="status">模型預覽中 - 穩定</div>
         </div>
     </div>
+    <button id="toggle-btn" style="display:none;">Menu</button>
 
     <div id="canvas-container"></div>
 
@@ -144,7 +161,8 @@
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+                "three-subdivide": "https://cdn.jsdelivr.net/npm/three-subdivide@1.1.5/build/index.module.js"
             }
         }
     </script>
@@ -153,11 +171,18 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { LoopSubdivision } from 'three-subdivide';
 
         let scene, camera, renderer, controls;
-        const loadingOverlay = document.getElementById('loading-overlay');
         const dashboard = document.getElementById('dashboard');
         const toggleBtn = document.getElementById('toggle-btn');
+        const loader = document.getElementById('loader');
+
+        // 切換面板邏輯
+        toggleBtn.onclick = () => {
+            dashboard.classList.toggle('closed');
+            toggleBtn.innerText = dashboard.classList.contains('closed') ? 'Open' : 'Close';
+        };
 
         init();
 
@@ -185,49 +210,49 @@
 
             loadModel();
 
-            // Dashboard 收縮邏輯
-            toggleBtn.onclick = () => {
-                const isHidden = dashboard.style.transform.includes('120%');
-                dashboard.style.transform = isHidden ? '' : (window.innerWidth > 768 ? 'translateX(120%)' : 'translateY(120%)');
-                toggleBtn.innerText = isHidden ? 'HIDE' : 'SHOW';
-            };
-
             window.addEventListener('resize', onWindowResize);
             animate();
         }
 
         async function loadModel() {
-            const loader = new GLTFLoader();
+            const gltfLoader = new GLTFLoader();
             const textureLoader = new THREE.TextureLoader();
 
             try {
-                const gltf = await loader.loadAsync('./model.glb');
+                const gltf = await gltfLoader.loadAsync('./model.glb');
                 const model = gltf.scene;
 
+                // 處理模型物件
                 model.traverse((child) => {
                     if (child.isMesh) {
-                        // 1. 處理材質與貼圖
+                        // 1. Subdivision 邏輯: 檢查名稱結尾
+                        if (child.name.endsWith('_-sub')) {
+                            console.log(`對物件 ${child.name} 進行細分處理...`);
+                            const iterations = 2;
+                            // 使用 LoopSubdivision 進行細分
+                            const subdividedGeometry = LoopSubdivision.modify(child.geometry, iterations, {
+                                split: false,
+                                uvSmooth: true,
+                                preserveEdges: false,
+                                flatOnly: false,
+                                maxTriangles: 500000 // 安全門檻
+                            });
+                            child.geometry.dispose();
+                            child.geometry = subdividedGeometry;
+                        }
+
+                        // 2. 貼圖自動匹配 (維持原有功能)
                         if (child.material) {
                             const matName = child.material.name;
                             if (matName) {
-                                textureLoader.load(`./${matName}.jpg`, (tex) => {
+                                const texturePath = `./${matName}.jpg`;
+                                textureLoader.load(texturePath, (tex) => {
                                     tex.flipY = false;
                                     tex.colorSpace = THREE.SRGBColorSpace;
                                     child.material.map = tex;
                                     child.material.needsUpdate = true;
-                                });
+                                }, undefined, () => {});
                             }
-                        }
-
-                        // 2. 處理 _-sub 結尾的物件 (細分)
-                        if (child.name.endsWith('_-sub')) {
-                            // 在 WebGL 中增加細分通常是重新計算法線並平滑處理
-                            // 設定細分感官上的數值 (這裡透過修改材質平滑度模擬 subdivision 效果)
-                            child.material.flatShading = false;
-                            child.geometry.computeVertexNormals();
-                            // 註：真正的幾何細分在瀏覽器端極度耗能，通常會在建模軟體導出。
-                            // 這裡模擬數值 2 的效果，強化平滑細節。
-                            console.log(`已對 ${child.name} 應用平滑細分設定`);
                         }
                     }
                 });
@@ -237,18 +262,14 @@
                 model.position.sub(center);
                 scene.add(model);
 
-                // 載入完成：更換介面
-                loadingOverlay.style.opacity = '0';
-                setTimeout(() => {
-                    loadingOverlay.style.display = 'none';
-                    dashboard.style.display = 'block';
-                    // 觸發進場動畫
-                    setTimeout(() => dashboard.classList.add('active'), 50);
-                }, 500);
+                // 載入完成後的介面轉換
+                loader.style.display = 'none';
+                dashboard.style.display = 'block';
+                toggleBtn.style.display = 'block';
 
             } catch (error) {
-                document.getElementById('loading-text').innerText = "錯誤：找不到 model.glb";
-                console.error(error);
+                console.error("載入失敗:", error);
+                document.querySelector('#loader .status').innerText = "載入失敗，請確認檔案路徑";
             }
         }
 
