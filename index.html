@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium 3D Dashboard</title>
+    <title>Premium 3D Dashboard - Easter Egg</title>
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
@@ -20,7 +20,6 @@
             color: white;
         }
 
-        /* 初始載入提示 */
         #loader-overlay {
             position: fixed;
             top: 20px;
@@ -29,7 +28,6 @@
             transition: opacity 0.5s ease;
         }
 
-        /* Dashboard 基礎樣式 */
         .glass-panel {
             background: var(--panel-bg);
             backdrop-filter: blur(15px);
@@ -43,64 +41,20 @@
             z-index: 50;
         }
 
-        #dashboard {
-            visibility: hidden;
-        }
+        #dashboard { visibility: hidden; }
 
-        /* 電腦端佈局 (右側收合 + 垂直按鈕) */
         @media (min-width: 769px) {
-            #dashboard {
-                top: 0;
-                right: 0;
-                width: 300px;
-                height: 100vh;
-                border-radius: 20px 0 0 20px;
-                padding: 40px 24px;
-                transform: translateX(100%);
-            }
-            #dashboard.active {
-                transform: translateX(0);
-            }
-            .toggle-btn {
-                position: absolute;
-                left: -40px; /* 調整按鈕位置 */
-                top: 50%;
-                transform: translateY(-50%) rotate(-90deg); /* 旋轉 90 度變直的 */
-                transform-origin: center;
-                padding: 8px 20px;
-            }
+            #dashboard { top: 0; right: 0; width: 300px; height: 100vh; border-radius: 20px 0 0 20px; padding: 40px 24px; transform: translateX(100%); }
+            #dashboard.active { transform: translateX(0); }
+            .toggle-btn { position: absolute; left: -40px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: center; padding: 8px 20px; }
         }
 
-        /* 手機端佈局 (螢幕正中央) */
         @media (max-width: 768px) {
-            #dashboard {
-                top: 50%;
-                left: 50%;
-                width: 80%;
-                max-width: 300px;
-                height: auto;
-                min-height: 200px;
-                border-radius: 20px;
-                padding: 30px;
-                transform: translate(-50%, -50%) scale(0.8); /* 居中並縮小 */
-                opacity: 0;
-                pointer-events: none;
-            }
-            #dashboard.active {
-                transform: translate(-50%, -50%) scale(1); /* 居中回彈 */
-                opacity: 1;
-                pointer-events: auto;
-            }
-            .toggle-btn {
-                position: fixed;
-                bottom: 30px;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 60;
-            }
+            #dashboard { top: 50%; left: 50%; width: 80%; max-width: 300px; border-radius: 20px; padding: 30px; transform: translate(-50%, -50%) scale(0.8); opacity: 0; pointer-events: none; }
+            #dashboard.active { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+            .toggle-btn { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 60; }
         }
 
-        /* 按鈕樣式 */
         .toggle-btn {
             background: var(--panel-bg);
             backdrop-filter: blur(10px);
@@ -111,45 +65,27 @@
             font-size: 11px;
             letter-spacing: 2px;
             white-space: nowrap;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: background 0.3s;
         }
+
+        h1 { margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
         
-        .toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
+        .status { font-size: 0.9rem; display: flex; align-items: center; }
+        .status::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; margin-right: 12px; box-shadow: 0 0 10px var(--accent-color); }
 
-        h1 {
-            margin: 0 0 16px 0;
-            font-size: 1.1rem;
-            font-weight: 300;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 10px;
-        }
-
-        .status {
-            font-size: 0.9rem;
+        /* 新增的選項樣式 */
+        .option-item {
+            margin-top: 15px;
             display: flex;
             align-items: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
         }
+        .option-item:hover { opacity: 1; }
+        .option-item input { margin-right: 10px; cursor: pointer; accent-color: var(--accent-color); }
 
-        .status::before {
-            content: '';
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            margin-right: 12px;
-            box-shadow: 0 0 10px var(--accent-color);
-        }
-
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
-        }
+        #canvas-container { width: 100vw; height: 100vh; }
     </style>
 </head>
 <body>
@@ -163,10 +99,14 @@
     <div id="dashboard" class="glass-panel">
         <h1>System Monitor</h1>
         <div class="status">模型預覽中 - 穩定</div>
-        <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 20px;">
+        <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 20px; margin-bottom: 5px;">
             環境光補償: 已開啟<br>
             動態渲染: 穩定
         </p>
+        
+        <label class="option-item">
+            <input type="checkbox" id="uiiai-toggle"> 啟用核心組件 (uiiai)
+        </label>
     </div>
 
     <div id="canvas-container"></div>
@@ -185,10 +125,13 @@
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        let scene, camera, renderer, controls;
+        let scene, camera, renderer, controls, clock;
+        let mainModel, uiiaiModel, mixer;
+        
         const loaderOverlay = document.getElementById('loader-overlay');
         const dashboard = document.getElementById('dashboard');
         const toggleBtn = document.getElementById('toggle-btn');
+        const uiiaiToggle = document.getElementById('uiiai-toggle');
 
         toggleBtn.addEventListener('click', () => {
             dashboard.classList.toggle('active');
@@ -197,6 +140,7 @@
         init();
 
         function init() {
+            clock = new THREE.Clock();
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(3, 2, 5);
@@ -218,26 +162,23 @@
             spotLight.position.set(5, 10, 5);
             scene.add(spotLight);
 
-            loadModel();
+            loadModels();
 
             window.addEventListener('resize', onWindowResize);
             animate();
         }
 
-        async function loadModel() {
+        async function loadModels() {
             const loader = new GLTFLoader();
             const textureLoader = new THREE.TextureLoader();
 
-            try {
-                const gltf = await loader.loadAsync('./model.glb');
-                const model = gltf.scene;
-
+            // 定義一個處理貼圖的共用函式
+            const applyTextures = (model) => {
                 model.traverse((child) => {
                     if (child.isMesh && child.material) {
                         const matName = child.material.name;
                         if (matName) {
-                            const texturePath = `./${matName}.jpg`; 
-                            textureLoader.load(texturePath, (tex) => {
+                            textureLoader.load(`./${matName}.jpg`, (tex) => {
                                 tex.flipY = false;
                                 tex.colorSpace = THREE.SRGBColorSpace;
                                 child.material.map = tex;
@@ -246,17 +187,46 @@
                         }
                     }
                 });
+            };
 
-                const box = new THREE.Box3().setFromObject(model);
+            try {
+                // 載入主模型
+                const gltfMain = await loader.loadAsync('./model.glb');
+                mainModel = gltfMain.scene;
+                applyTextures(mainModel);
+                
+                const box = new THREE.Box3().setFromObject(mainModel);
                 const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center);
-                scene.add(model);
+                mainModel.position.sub(center);
+                scene.add(mainModel);
+
+                // 載入 uiiai 模型 (彩蛋)
+                const gltfUiiai = await loader.loadAsync('./uiiai.glb');
+                uiiaiModel = gltfUiiai.scene;
+                applyTextures(uiiaiModel);
+                
+                uiiaiModel.visible = false; // 預設隱藏
+                uiiaiModel.position.sub(center); // 與主模型位置同步
+                scene.add(uiiaiModel);
+
+                // 設定 uiiai 動畫
+                if (gltfUiiai.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(uiiaiModel);
+                    const action = mixer.clipAction(gltfUiiai.animations[0]);
+                    action.timeScale = 1.2; // 120% 速度
+                    action.play();
+                }
+
+                // 介面切換
+                uiiaiToggle.addEventListener('change', (e) => {
+                    uiiaiModel.visible = e.target.checked;
+                });
 
                 loaderOverlay.style.opacity = '0';
                 setTimeout(() => {
                     loaderOverlay.style.display = 'none';
                     dashboard.style.visibility = 'visible';
-                    toggleBtn.style.display = 'block'; // 顯示按鈕
+                    toggleBtn.style.display = 'block';
                     dashboard.classList.add('active'); 
                 }, 500);
 
@@ -274,6 +244,8 @@
 
         function animate() {
             requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            if (mixer) mixer.update(delta); // 更新動畫
             controls.update();
             renderer.render(scene, camera);
         }
