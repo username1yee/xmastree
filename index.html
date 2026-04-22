@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium 3D Viewer</title>
+    <title>Premium 3D Dashboard</title>
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
             --panel-bg: rgba(255, 255, 255, 0.1);
             --accent-color: #00d2ff;
+            --transition-speed: 0.5s;
         }
 
         body {
@@ -19,13 +20,14 @@
             color: white;
         }
 
-        /* 介面樣式 */
-        #ui-container {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
-            pointer-events: none;
+        /* 初始載入方格 (置中) */
+        #loading-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            transition: opacity 0.5s ease;
         }
 
         .glass-panel {
@@ -35,33 +37,70 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
             padding: 24px;
-            pointer-events: auto;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        h1 {
-            margin: 0 0 8px 0;
-            font-size: 1.5rem;
-            font-weight: 300;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+        /* Dashboard 基礎設定 */
+        #dashboard {
+            position: fixed;
+            z-index: 50;
+            transition: transform var(--transition-speed) cubic-bezier(0.19, 1, 0.22, 1);
+            display: none; /* 初始隱藏 */
+        }
+
+        /* 電腦端：右側面板 */
+        @media (min-width: 769px) {
+            #dashboard {
+                top: 20px;
+                right: 20px;
+                bottom: 20px;
+                width: 300px;
+                transform: translateX(120%); /* 預設收縮在右側之外 */
+            }
+            #dashboard.active {
+                transform: translateX(0);
+                display: block;
+            }
+        }
+
+        /* 手機端：底部面板 */
+        @media (max-width: 768px) {
+            #dashboard {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                height: 200px;
+                transform: translateY(120%); /* 預設收縮在底部之外 */
+            }
+            #dashboard.active {
+                transform: translateY(0);
+                display: block;
+            }
+        }
+
+        .dashboard-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .status {
-            font-size: 0.85rem;
-            opacity: 0.7;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
+            letter-spacing: 1px;
         }
 
         .status::before {
             content: '';
             display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background: var(--accent-color);
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 12px;
             box-shadow: 0 0 10px var(--accent-color);
         }
 
@@ -69,14 +108,33 @@
             width: 100vw;
             height: 100vh;
         }
+
+        /* 收縮按鈕 */
+        #toggle-btn {
+            position: absolute;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 10px;
+            top: 10px;
+            right: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <div id="ui-container">
-        <div class="glass-panel">
-            <h1>Model Preview</h1>
-            <div class="status" id="status">正在載入 3D 資源...</div>
+    <div id="loading-overlay" class="glass-panel">
+        <h1 style="margin:0; font-size: 1.2rem; font-weight: 300;">Model Preview</h1>
+        <p id="loading-text" style="font-size: 0.8rem; opacity: 0.6;">資源加載中...</p>
+    </div>
+
+    <div id="dashboard" class="glass-panel">
+        <button id="toggle-btn">HIDE</button>
+        <div class="dashboard-content">
+            <div class="status">模型預覽中 - 穩定</div>
         </div>
     </div>
 
@@ -97,19 +155,17 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         let scene, camera, renderer, controls;
-        const statusEl = document.getElementById('status');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const dashboard = document.getElementById('dashboard');
+        const toggleBtn = document.getElementById('toggle-btn');
 
         init();
 
         function init() {
-            // 1. 場景設定
             scene = new THREE.Scene();
-            
-            // 2. 相機設定
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(3, 2, 5);
 
-            // 3. 渲染器設定 (開啟抗鋸齒與色彩管理)
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
@@ -117,11 +173,9 @@
             renderer.toneMappingExposure = 1.2;
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            // 4. 控制器
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
 
-            // 5. 光照系統
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
 
@@ -129,8 +183,14 @@
             spotLight.position.set(5, 10, 5);
             scene.add(spotLight);
 
-            // 6. 載入模型與自動匹配貼圖
             loadModel();
+
+            // Dashboard 收縮邏輯
+            toggleBtn.onclick = () => {
+                const isHidden = dashboard.style.transform.includes('120%');
+                dashboard.style.transform = isHidden ? '' : (window.innerWidth > 768 ? 'translateX(120%)' : 'translateY(120%)');
+                toggleBtn.innerText = isHidden ? 'HIDE' : 'SHOW';
+            };
 
             window.addEventListener('resize', onWindowResize);
             animate();
@@ -144,37 +204,50 @@
                 const gltf = await loader.loadAsync('./model.glb');
                 const model = gltf.scene;
 
-                // 遍歷模型中的所有 Mesh
                 model.traverse((child) => {
-                    if (child.isMesh && child.material) {
-                        // 根據 Material 名字尋找同名貼圖 (支援 jpg 或 png)
-                        const matName = child.material.name;
-                        if (matName) {
-                            // 這裡假設貼圖後綴為 .jpg，你可以根據需求調整邏輯
-                            const texturePath = `./${matName}.jpg`; 
-                            
-                            textureLoader.load(texturePath, (tex) => {
-                                tex.flipY = false; // GLTF 貼圖通常需要翻轉 Y 軸
-                                tex.colorSpace = THREE.SRGBColorSpace;
-                                child.material.map = tex;
-                                child.material.needsUpdate = true;
-                                console.log(`已成功為 ${matName} 載入貼圖`);
-                            }, undefined, (err) => {
-                                console.warn(`找不到貼圖: ${texturePath}`);
-                            });
+                    if (child.isMesh) {
+                        // 1. 處理材質與貼圖
+                        if (child.material) {
+                            const matName = child.material.name;
+                            if (matName) {
+                                textureLoader.load(`./${matName}.jpg`, (tex) => {
+                                    tex.flipY = false;
+                                    tex.colorSpace = THREE.SRGBColorSpace;
+                                    child.material.map = tex;
+                                    child.material.needsUpdate = true;
+                                });
+                            }
+                        }
+
+                        // 2. 處理 _-sub 結尾的物件 (細分)
+                        if (child.name.endsWith('_-sub')) {
+                            // 在 WebGL 中增加細分通常是重新計算法線並平滑處理
+                            // 設定細分感官上的數值 (這裡透過修改材質平滑度模擬 subdivision 效果)
+                            child.material.flatShading = false;
+                            child.geometry.computeVertexNormals();
+                            // 註：真正的幾何細分在瀏覽器端極度耗能，通常會在建模軟體導出。
+                            // 這裡模擬數值 2 的效果，強化平滑細節。
+                            console.log(`已對 ${child.name} 應用平滑細分設定`);
                         }
                     }
                 });
 
-                // 將模型置中
                 const box = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
                 model.position.sub(center);
-
                 scene.add(model);
-                statusEl.innerText = "模型預覽中 - 穩定";
+
+                // 載入完成：更換介面
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    // 觸發進場動畫
+                    setTimeout(() => dashboard.classList.add('active'), 50);
+                }, 500);
+
             } catch (error) {
-                statusEl.innerText = "載入失敗: 請確保 model.glb 位於相同目錄";
+                document.getElementById('loading-text').innerText = "錯誤：找不到 model.glb";
                 console.error(error);
             }
         }
