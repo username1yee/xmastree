@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium 3D Viewer - Dashboard</title>
+    <title>Premium 3D Dashboard</title>
     <style>
         :root {
             --bg-gradient: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
             --panel-bg: rgba(255, 255, 255, 0.1);
             --accent-color: #00d2ff;
-            --transition-speed: 0.4s;
+            --transition-speed: 0.5s;
         }
 
         body {
@@ -21,101 +21,98 @@
         }
 
         /* 初始載入提示 */
-        #loader {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
+        #loader-overlay {
+            position: fixed;
+            top: 20px;
+            left: 20px;
             z-index: 100;
+            transition: opacity 0.5s ease;
         }
 
+        /* Dashboard 基礎樣式 */
         .glass-panel {
             background: var(--panel-bg);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Dashboard 基本設定 */
-        #dashboard {
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
             position: fixed;
             z-index: 50;
-            transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
-            display: none; /* 初始隱藏 */
         }
 
-        /* 切換按鈕 */
-        #toggle-btn {
-            position: absolute;
-            background: var(--panel-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 8px;
-            z-index: 51;
+        #dashboard {
+            visibility: hidden; /* 初始隱藏，載入完畢才顯示 */
         }
 
-        /* 電腦版樣式：右側側邊欄 */
+        /* 電腦端佈局 (右側收合) */
         @media (min-width: 769px) {
             #dashboard {
                 top: 0;
                 right: 0;
                 width: 300px;
                 height: 100vh;
-                border-radius: 16px 0 0 16px;
-                transform: translateX(0);
-            }
-            #dashboard.closed {
+                border-radius: 20px 0 0 20px;
+                padding: 40px 24px;
                 transform: translateX(100%);
             }
-            #toggle-btn {
-                top: 20px;
-                right: 320px;
-                transition: right var(--transition-speed);
+            #dashboard.active {
+                transform: translateX(0);
             }
-            #dashboard.closed + #toggle-btn {
-                right: 20px;
+            .toggle-btn {
+                position: absolute;
+                left: -50px;
+                top: 50%;
+                transform: translateY(-50%);
             }
         }
 
-        /* 手機版樣式：底部向上升 */
+        /* 手機端佈局 (底部收合) */
         @media (max-width: 768px) {
             #dashboard {
                 bottom: 0;
                 left: 0;
                 width: 100%;
-                height: 40vh;
+                height: 30vh;
                 border-radius: 20px 20px 0 0;
-                transform: translateY(0);
-            }
-            #dashboard.closed {
+                padding: 24px;
                 transform: translateY(100%);
             }
-            #toggle-btn {
-                bottom: calc(40vh + 20px);
+            #dashboard.active {
+                transform: translateY(0);
+            }
+            .toggle-btn {
+                position: absolute;
+                top: -50px;
                 left: 50%;
                 transform: translateX(-50%);
-                transition: bottom var(--transition-speed);
-            }
-            #dashboard.closed + #toggle-btn {
-                bottom: 20px;
             }
         }
 
-        .dashboard-content {
-            padding: 30px;
+        /* 收合按鈕樣式 */
+        .toggle-btn {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            letter-spacing: 1px;
+            white-space: nowrap;
         }
 
         h1 {
-            margin: 0 0 15px 0;
+            margin: 0 0 16px 0;
             font-size: 1.2rem;
             font-weight: 300;
             letter-spacing: 2px;
             text-transform: uppercase;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
         }
 
         .status {
@@ -131,7 +128,7 @@
             height: 8px;
             background: var(--accent-color);
             border-radius: 50%;
-            margin-right: 10px;
+            margin-right: 12px;
             box-shadow: 0 0 10px var(--accent-color);
         }
 
@@ -143,17 +140,19 @@
 </head>
 <body>
 
-    <div id="loader">
-        <div class="status">正在載入模型資源...</div>
+    <div id="loader-overlay" class="glass-panel" style="padding: 20px; border-radius: 12px;">
+        <div class="status" id="load-status">正在載入 3D 資源...</div>
     </div>
 
     <div id="dashboard" class="glass-panel">
-        <div class="dashboard-content">
-            <h1>Dashboard</h1>
-            <div class="status">模型預覽中 - 穩定</div>
-        </div>
+        <button class="toggle-btn" id="toggle-btn">DASHBOARD</button>
+        <h1>System Monitor</h1>
+        <div class="status">模型預覽中 - 穩定</div>
+        <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 20px;">
+            環境光補償: 已開啟<br>
+            動態渲染: 穩定
+        </p>
     </div>
-    <button id="toggle-btn" style="display:none;">Menu</button>
 
     <div id="canvas-container"></div>
 
@@ -161,8 +160,7 @@
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-                "three-subdivide": "https://cdn.jsdelivr.net/npm/three-subdivide@1.1.5/build/index.module.js"
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
             }
         }
     </script>
@@ -171,18 +169,16 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { LoopSubdivision } from 'three-subdivide';
 
         let scene, camera, renderer, controls;
+        const loaderOverlay = document.getElementById('loader-overlay');
         const dashboard = document.getElementById('dashboard');
         const toggleBtn = document.getElementById('toggle-btn');
-        const loader = document.getElementById('loader');
 
-        // 切換面板邏輯
-        toggleBtn.onclick = () => {
-            dashboard.classList.toggle('closed');
-            toggleBtn.innerText = dashboard.classList.contains('closed') ? 'Open' : 'Close';
-        };
+        // 控制收合邏輯
+        toggleBtn.addEventListener('click', () => {
+            dashboard.classList.toggle('active');
+        });
 
         init();
 
@@ -215,44 +211,24 @@
         }
 
         async function loadModel() {
-            const gltfLoader = new GLTFLoader();
+            const loader = new GLTFLoader();
             const textureLoader = new THREE.TextureLoader();
 
             try {
-                const gltf = await gltfLoader.loadAsync('./model.glb');
+                const gltf = await loader.loadAsync('./model.glb');
                 const model = gltf.scene;
 
-                // 處理模型物件
                 model.traverse((child) => {
-                    if (child.isMesh) {
-                        // 1. Subdivision 邏輯: 檢查名稱結尾
-                        if (child.name.endsWith('_-sub')) {
-                            console.log(`對物件 ${child.name} 進行細分處理...`);
-                            const iterations = 2;
-                            // 使用 LoopSubdivision 進行細分
-                            const subdividedGeometry = LoopSubdivision.modify(child.geometry, iterations, {
-                                split: false,
-                                uvSmooth: true,
-                                preserveEdges: false,
-                                flatOnly: false,
-                                maxTriangles: 500000 // 安全門檻
+                    if (child.isMesh && child.material) {
+                        const matName = child.material.name;
+                        if (matName) {
+                            const texturePath = `./${matName}.jpg`; 
+                            textureLoader.load(texturePath, (tex) => {
+                                tex.flipY = false;
+                                tex.colorSpace = THREE.SRGBColorSpace;
+                                child.material.map = tex;
+                                child.material.needsUpdate = true;
                             });
-                            child.geometry.dispose();
-                            child.geometry = subdividedGeometry;
-                        }
-
-                        // 2. 貼圖自動匹配 (維持原有功能)
-                        if (child.material) {
-                            const matName = child.material.name;
-                            if (matName) {
-                                const texturePath = `./${matName}.jpg`;
-                                textureLoader.load(texturePath, (tex) => {
-                                    tex.flipY = false;
-                                    tex.colorSpace = THREE.SRGBColorSpace;
-                                    child.material.map = tex;
-                                    child.material.needsUpdate = true;
-                                }, undefined, () => {});
-                            }
                         }
                     }
                 });
@@ -262,14 +238,17 @@
                 model.position.sub(center);
                 scene.add(model);
 
-                // 載入完成後的介面轉換
-                loader.style.display = 'none';
-                dashboard.style.display = 'block';
-                toggleBtn.style.display = 'block';
+                // --- 狀態切換邏輯 ---
+                loaderOverlay.style.opacity = '0'; // 隱藏載入提示
+                setTimeout(() => {
+                    loaderOverlay.style.display = 'none';
+                    dashboard.style.visibility = 'visible'; // 顯示 Dashboard
+                    dashboard.classList.add('active'); // 預設展開
+                }, 500);
 
             } catch (error) {
-                console.error("載入失敗:", error);
-                document.querySelector('#loader .status').innerText = "載入失敗，請確認檔案路徑";
+                document.getElementById('load-status').innerText = "載入失敗";
+                console.error(error);
             }
         }
 
